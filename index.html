@@ -106,8 +106,8 @@
             thead { display: table-header-group !important; } 
             tfoot { display: table-footer-group !important; }
             
-            tr { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: auto !important; break-after: auto !important; }
-            th, td { word-break: normal !important; overflow-wrap: break-word !important; }
+            tr { page-break-inside: auto !important; break-inside: auto !important; page-break-after: auto !important; break-after: auto !important; }
+            th, td { page-break-inside: auto !important; break-inside: auto !important; word-break: normal !important; overflow-wrap: break-word !important; }
             
             h1, h2, h3, h4, h5, .section-title { page-break-after: avoid !important; break-after: avoid !important; margin-top: 3mm !important; margin-bottom: 2mm !important; padding-top: 0 !important; }
             .prevent-break { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 2mm !important; }
@@ -116,7 +116,7 @@
         table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; font-size: 0.85rem; }
         thead { display: table-header-group; } 
         tfoot { display: table-footer-group; }
-        tr { page-break-inside: avoid; break-inside: avoid; } 
+        tr { page-break-inside: auto; break-inside: auto; } 
         th, td { border: 1px solid #86efac; padding: 0.5rem; text-align: center; } 
         th { background-color: #dcfce7; font-weight: 700; color: #1f2937; } 
         .text-left { text-align: left; }
@@ -610,19 +610,30 @@
             const name = agentName.replace(/\s+/g, '').toLowerCase();
             let cmr = [];
             
-            // 발암성
-            if (name.match(/석면|베릴륨|크롬\(6가\)|크롬산아연|비소|니켈\(가용성\)|니켈\(불용성\)|황화니켈|벤젠|염화비닐|1,3-부타디엔|산화에틸렌|트리클로로에틸렌|산화규소\(결정체\)|포름알데히드|황산|1,2-디클로로프로판|석탄분진|디에틸에테르|크롬광|카드뮴/)) cmr.push('발암성 1A');
-            else if (name.match(/납|아크릴로니트릴|에피클로로히드린|디클로로벤지딘|디클로로에탄|퍼클로로에틸렌|히드라진|프로필렌이민|에틸렌이민|아세트알데히드|벤조피렌|오쏘-톨리딘|디메틸아민|염화벤질|아크릴아미드/)) cmr.push('발암성 1B');
-            else if (name.match(/디클로로메탄|에틸벤젠|스티렌|과산화수소|디에탄올아민|나프탈렌|니트로벤젠|이산화티타늄|카본블랙|클로로포름|디에틸헥실프탈레이트|디메틸아닐린|에틸아크릴레이트|푸르푸랄|안티몬|코발트/)) cmr.push('발암성 2');
+            // 정규식을 통한 물질명 매핑 (사용자 요청 전체 목록 반영)
+            const carc1A = /니켈\(가용성|니켈\(불용성|니켈카르보닐|1,2-디클로로프로판|4,4'-메틸렌비스\(2-클로로아닐린\)|목재분진\(적삼목|베릴륨|베타-나프틸아민|벤조\(a\)피렌|벤조피렌|벤지딘|1,3-부타디엔|부탄\(이성체\)|비소|비스-\(클로로메틸\)에테르|산화규소|산화에틸렌|산화프로필렌|삼차부틸크롬산|석면|스트론티움크로메이트|4-아미노디페닐|비산연|아황화니켈|액화석유가스|에틸알코올|오쏘-톨루이딘|우라늄|카드뮴|크로밀클로라이드|크롬광가공|크롬\(6가\)|크롬과그무기화합물|불용성6가크롬|수용성6가크롬|크롬산연|클로로메틸메틸에테르|클로로에틸렌|트리클로로에틸렌|입자상다환식방향족|황산(?!디메틸)|황화니켈|콜타르피치|기타분진\(산화규소/;
+            const carc1B = /^납$|납\(연\)|내화성세라믹섬유|4-니트로디페닐|2-니트로프로판|디니트로톨루엔|디메틸니트로소아민|디메틸카르바모일클로라이드|1,1-디메틸하이드라진|1,2-디브로모에탄|디아니시딘|디아조메탄|디아지논|3,3-디클로로벤지딘|디클로로벤지딘|고무솔벤트|4,4'-메틸렌디아닐린|베타-프로피오락톤|벤조트리클로라이드|브롬화비닐|브이엠및피나프타|사염화탄소|삼산화안티몬|스토다드용제|아세트알데히드|아크릴로니트릴|아크릴아미드|에틸렌이민|1,2-에폭시프로판|2,3-에폭시-1-프로판올|에피클로로히드린|염화벤질|염화에틸리덴|오쏘-톨리딘|이염화에틸렌|캡타폴|크리센|1,2,3-트리클로로프로판|퍼클로로에틸렌|페닐글리시딜에테르|페닐하이드라진|^하이드라진|헥사메틸포스포르아미드|황산디메틸/;
+            const carc2 = /과산화수소|광물털섬유|노말-부틸글리시딜에테르|니켈\(금속\)|니트로메탄|니트로벤젠|디메틸아닐린|디메틸아미노벤젠|디에탄올아민|디\(2-에틸헥실\)프탈레이트|디에틸헥실프탈레이트|디엘드린|1,4-디옥산|디우론|디클로로디페닐트리클로로에탄|디클로로아세틸렌|1,1-디클로로에틸렌|디클로로에틸에테르|디클로로프로펜|디클로르보스|디하이드록시벤젠|메틸렌비스페닐이소시아네이트|메틸삼차부틸에테르|메틸하이드라진|몰리브덴|베노밀|2-부톡시에탄올|브로마실|1-브로모프로판|브롬화에틸|비닐시클로헥센디옥사이드|비닐아세테이트|스티렌|아닐린|3-아미노-1,2,4-트리아졸|아미트롤|아스팔트흄|아트라진|알릴글리시딜에테르|알파-나프틸아민|알파-나프틸티오우레아|알파-메틸스티렌|에틸벤젠|염화알릴|오산화바나듐|용접흄|이산화티타늄|이소포론|카바릴|카본블랙|카테콜|캡탄|케로젠|코발트|큐멘|크로톤알데히드|클로로디페닐|클로로벤젠|클로로아세트알데히드|테트라메틸연|테트라에틸연|테트라하이드로퓨란|1,1,2,2-테트라클로로에탄|톨루엔-2,4-디이소시아네이트|톨루엔-2,6-디이소시아네이트|트리부틸포스페이트|트리클로로메탄|클로로포름|트리클로로아세트산|1,1,2-트리클로로에탄|파라-니트로클로로벤젠|파라-디클로로벤젠|파라치온|파라-톨루이딘|헥사클로로부타디엔|헥사클로로에탄|헥손|헵타클로르/;
 
-            // 생식세포 변이원성
-            if (name.match(/벤젠|산화에틸렌|1,3-부타디엔|에틸렌이민|벤조피렌/)) cmr.push('생식세포 변이원성 1B');
-            else if (name.match(/트리클로로에틸렌|포름알데히드|페놀|하이드로퀴논|크로톤알데히드|황산디메틸|디니트로톨루엔/)) cmr.push('생식세포 변이원성 2');
+            const muta1B = /가솔린|니트로톨루엔|고무솔벤트|베노밀|벤조\(a\)피렌|벤조피렌|1,3-부타디엔|부탄\(이성체\)|브이엠및피나프타|산화에틸렌|스토다드용제|아크릴아미드|액화석유가스|에틸렌이민|1,2-에폭시프로판|크로밀클로라이드|헥사메틸포스포르아미드/;
+            const muta2 = /노말-부틸글리시딜에테르|디니트로-오쏘-크레졸|디니트로톨루엔|디하이드록시벤젠|4,4'-메틸렌디아닐린|모노크로토포스|브롬화메틸|아닐린|아황화니켈|알릴글리시딜에테르|2,3-에폭시-1-프로판올|염화알릴|오산화바나듐|카드뮴|크로톤알데히드|크리센|트리클로로에틸렌|파라-니트로클로로벤젠|페놀|페닐글리시딜에테르|페닐하이드라진|황산디메틸|황화니켈/;
 
-            // 생식독성
-            if (name.match(/납|일산화탄소|2-브로모프로판|카드뮴|크롬산연/)) cmr.push('생식독성 1A');
-            else if (name.match(/디메틸포름아미드|디메틸아세트아미드|2-메톡시에탄올|2-에톡시에탄올|디에틸헥실프탈레이트|디부틸프탈레이트|니트로벤젠|벤조피렌/)) cmr.push('생식독성 1B');
-            else if (name.match(/톨루엔|노말헥산|노말-헥산|이황화탄소|스티렌|시클로헥실아민/)) cmr.push('생식독성 2');
+            const repro1A = /^납$|납\(연\)|2-브로모프로판|비산연|와파린|일산화탄소|크롬산연/;
+            const repro1B = /니켈카르보닐|니트로벤젠|N,N-디메틸아세트아미드|디메틸아세트아미드|디메틸포름아미드|디부틸프탈레이트|디\(2-에틸헥실\)프탈레이트|디에틸헥실프탈레이트|2-메톡시에탄올|2-메톡시에틸아세테이트|베노밀|벤조\(a\)피렌|벤조피렌|붕소산사나트륨염|1-브로모프로판|산화붕소|수은|2-에톡시에탄올|2-에톡시에틸아세테이트|에틸렌글리콜메틸에테르아세테이트|2,3-에폭시-1-프로판올|1,2,3-트리클로로프로판|포름아미드|휘발성콜타르피치|콜타르피치/;
+            const repro2 = /n-헥산|노말-헥산|노말헥산|디니트로톨루엔|메틸노말-부틸케톤|메틸이소시아네이트|스티렌|시클로헥실아민|3-아미노-1,2,4-트리아졸|아미트롤|아크릴아미드|알릴글리시딜에테르|오산화바나듐|이황화탄소|카드뮴|트리클로로메탄|클로로포름|피페라진디하이드로클로라이드/;
+            const repro2_toluene = /^톨루엔$|톨루엔(?!.*(?:디이소시아네이트|니트로|디니트로))/;
+            const repro2_nitrotoluene = /^니트로톨루엔/;
+
+            if (carc1A.test(name)) cmr.push('발암성 1A');
+            else if (carc1B.test(name)) cmr.push('발암성 1B');
+            else if (carc2.test(name)) cmr.push('발암성 2');
+
+            if (muta1B.test(name)) cmr.push('생식세포 변이원성 1B');
+            else if (muta2.test(name)) cmr.push('생식세포 변이원성 2');
+
+            if (repro1A.test(name)) cmr.push('생식독성 1A');
+            else if (repro1B.test(name)) cmr.push('생식독성 1B');
+            else if (repro2.test(name) || repro2_toluene.test(name) || repro2_nitrotoluene.test(name)) cmr.push('생식독성 2');
 
             return cmr;
         }
@@ -1211,6 +1222,7 @@
 
             // --- Section 6 ---
             const sec6Data = data.filter(d => d.category !== '물리적 인자' && !d.agent.replace(/\s+/g, '').includes('혼합물질'));
+            
             const sec6Thead = `<tr>
                 <th width="8%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">사업장명</th>
                 <th width="8%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">부서(팀)명</th>
@@ -1218,14 +1230,14 @@
                 <th width="16%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">세부 유해인자명</th>
                 <th width="3.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.7rem;">측정<br>건수</th>
                 <th width="3.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.7rem;">초과<br>건수</th>
-                <th width="6%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">측정치<br><span style="font-size:0.6rem; font-weight:normal;">(최대)</span></th>
-                <th width="4.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-green-700" style="font-size:0.75rem;">노출<br>수준</th>
-                <th width="8.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">CMR</th>
-                <th width="8.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">노출기준</th>
-                <th width="4.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-blue-700" style="font-size:0.75rem;">유해성</th>
-                <th width="5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.75rem;">위험성</th>
-                <th width="4.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.75rem;">신호등</th>
-                <th width="12.5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">판정</th>
+                <th width="5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">측정치</th>
+                <th width="9%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">CMR</th>
+                <th width="8%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">노출기준</th>
+                <th width="5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-green-700" style="font-size:0.75rem;">노출<br>수준</th>
+                <th width="5%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-blue-700" style="font-size:0.75rem;">유해성</th>
+                <th width="9%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.75rem;">위험성</th>
+                <th width="4%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800" style="font-size:0.75rem;">신호등</th>
+                <th width="9%" class="bg-green-100 border border-green-300 py-1.5 px-1 text-center font-bold text-gray-800">판정</th>
             </tr>`;
             
             const groupRender6 = (r, isG, isNG, rs, isNSG, subRS) => {
@@ -1235,7 +1247,8 @@
                 let exLv = '-', hzLv = '-', rkLv = '-';
                 let jud = '-', judColorClass = '';
                 let sec6LightColor = r.lightColor; 
-                
+                let riskBgClass = 'bg-gray-50';
+
                 if (r.cat !== '물리적 인자') {
                     exLv = r.lightColor === 'bg-green-500' ? 1 : (r.lightColor === 'bg-yellow-400' ? 2 : (r.lightColor === 'bg-orange-400' ? 3 : 4));
                     let limit = parseFloat(r.limit);
@@ -1247,14 +1260,15 @@
                     }
                     rkLv = exLv * hzLv;
 
+                    // ★ 판단기준 표에 따른 위험성 점수 색상 적용
                     if (rkLv >= 12) {
-                        jud = '매우 높음'; judColorClass = 'text-red-600'; sec6LightColor = 'bg-red-600';
+                        jud = '매우 높음'; judColorClass = 'text-red-600'; sec6LightColor = 'bg-red-600'; riskBgClass = 'bg-red-50';
                     } else if (rkLv >= 5) {
-                        jud = '높음'; judColorClass = 'text-orange-500'; sec6LightColor = 'bg-orange-400';
+                        jud = '높음'; judColorClass = 'text-orange-500'; sec6LightColor = 'bg-orange-400'; riskBgClass = 'bg-orange-50';
                     } else if (rkLv >= 3) {
-                        jud = '보통'; judColorClass = 'text-yellow-600'; sec6LightColor = 'bg-yellow-400';
+                        jud = '보통'; judColorClass = 'text-yellow-600'; sec6LightColor = 'bg-yellow-400'; riskBgClass = 'bg-yellow-50';
                     } else {
-                        jud = '낮음'; judColorClass = 'text-green-600'; sec6LightColor = 'bg-green-500';
+                        jud = '낮음'; judColorClass = 'text-green-600'; sec6LightColor = 'bg-green-500'; riskBgClass = 'bg-green-50';
                     }
                 } else {
                     jud = '-'; judColorClass = 'text-gray-700'; sec6LightColor = r.lightColor;
@@ -1282,22 +1296,27 @@
                 let cmrList = getCMRInfo(r.agent);
                 let cmrText = cmrList.length > 0 ? cmrList.map(c => `<span style="white-space:nowrap;">${c}</span>`).join('<br>') : '-';
                 let limitText = r.rawLimit ? r.rawLimit : (r.limit === 9999 ? '기준없음' : `${r.limit} <span style="font-size:0.55rem; color:#6b7280; white-space:nowrap;">${extractedUnit}</span>`);
-                let riskBgClass = rkLv >= 12 ? 'bg-red-50' : (rkLv >= 5 ? 'bg-orange-50' : (rkLv >= 3 ? 'bg-yellow-50' : 'bg-gray-50'));
+                
+                // ★ 위험성 표 강조 및 병합 텍스트 (예: 2(낮음)) 구성
+                let riskTextHtml = `<span class="text-gray-400">-</span>`;
+                if (r.cat !== '물리적 인자') {
+                    riskTextHtml = `${rkLv}(${jud})`;
+                }
 
+                // ★ 순서 재배치: 측정치, CMR, 노출기준, 노출수준, 유해성, 위험성, 신호등, 판정
                 return `<tr>${companyTd}${groupTd}${subGroupTd}${sec6AgentTd}
                     <td class="border-green-300 text-center">${r.n}</td>
                     <td class="border-green-300 text-center ${r.exc > 0 ? 'text-red-600 font-bold' : ''}">${r.exc}</td>
                     <td class="border-green-300 text-center font-bold text-gray-800 break-keep px-0.5">${maxValText}</td>
-                    <td class="border-green-300 text-center text-green-600 font-bold text-[0.9rem] bg-green-50/30">${exLv}</td>
                     <td class="border-green-300 text-center text-[0.55rem] leading-tight text-gray-700 px-0.5 py-1 break-keep">${cmrText}</td>
                     <td class="border-green-300 text-center text-[0.65rem] font-bold text-gray-800 break-keep px-0.5">${limitText}</td>
+                    <td class="border-green-300 text-center text-green-600 font-bold text-[0.9rem] bg-green-50/30">${exLv}</td>
                     <td class="border-green-300 text-center text-blue-600 font-bold text-[0.9rem] bg-blue-50/30">${hzLv}</td>
-                    <td class="border-green-300 text-center font-bold ${riskBgClass} px-0.5 py-1">
-                        <span class="text-blue-600 text-[0.8rem]">${rkLv}</span><br>
-                        <span class="${judColorClass} text-[0.65rem]">${jud}</span>
+                    <td class="border-green-300 text-center font-extrabold text-[1rem] ${judColorClass} ${riskBgClass} px-0.5 py-1 tracking-tight">
+                        ${riskTextHtml}
                     </td>
                     <td class="border-green-300 text-center"><span class="inline-block w-3 h-3 rounded-full ${sec6LightColor} shadow-sm border border-gray-300"></span></td>
-                    <td class="text-center text-[0.7rem] border-green-300 font-bold ${judColorClass} break-keep">${jud}</td>
+                    <td class="text-center text-[0.75rem] border-green-300 font-bold ${judColorClass} break-keep">${jud}</td>
                 </tr>`;
             };
 
