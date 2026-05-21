@@ -1249,6 +1249,8 @@
                 let sec6LightColor = r.lightColor; 
                 let riskBgClass = 'bg-gray-50';
 
+                let cmrList = getCMRInfo(r.agent);
+
                 if (r.cat !== '물리적 인자') {
                     exLv = r.lightColor === 'bg-green-500' ? 1 : (r.lightColor === 'bg-yellow-400' ? 2 : (r.lightColor === 'bg-orange-400' ? 3 : 4));
                     let limit = parseFloat(r.limit);
@@ -1258,6 +1260,12 @@
                     } else {
                         hzLv = limit > 50 ? 1 : (limit > 5 ? 2 : (limit > 0.5 ? 3 : 4));
                     }
+
+                    // ★ CMR 물질인 경우 유해성 점수를 무조건 4(최고 수준)로 고정
+                    if (cmrList.length > 0) {
+                        hzLv = 4;
+                    }
+
                     rkLv = exLv * hzLv;
 
                     // ★ 판단기준 표에 따른 위험성 점수 색상 적용
@@ -1293,7 +1301,6 @@
                 }
                 
                 let maxValText = r.maxVal !== undefined ? `${r.maxVal} <span style="font-size:0.55rem; color:#6b7280; white-space:nowrap;">${extractedUnit}</span>` : '-';
-                let cmrList = getCMRInfo(r.agent);
                 let cmrText = cmrList.length > 0 ? cmrList.map(c => `<span style="white-space:nowrap;">${c}</span>`).join('<br>') : '-';
                 let limitText = r.rawLimit ? r.rawLimit : (r.limit === 9999 ? '기준없음' : `${r.limit} <span style="font-size:0.55rem; color:#6b7280; white-space:nowrap;">${extractedUnit}</span>`);
                 
@@ -1459,6 +1466,13 @@
                 } else {
                     hzLv = limit > 50 ? 1 : (limit > 5 ? 2 : (limit > 0.5 ? 3 : 4));
                 }
+
+                let cmrList = getCMRInfo(r.agent);
+                // ★ CMR 물질인 경우 유해성 점수를 무조건 4(최고 수준)로 고정
+                if (cmrList.length > 0) {
+                    hzLv = 4;
+                }
+
                 let rkLv = exLv * hzLv;
                 
                 let jud = '';
